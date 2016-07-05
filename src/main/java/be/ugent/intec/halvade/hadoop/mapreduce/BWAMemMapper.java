@@ -36,6 +36,9 @@ public class BWAMemMapper extends HalvadeMapper<ChromosomeRegion, SAMRecordWrita
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
         super.map(key, value, context);
         ((BWAMemInstance)instance).feedLine(value.toString());
+        // get as size
+        //int s = ((BWAMemInstance)instance).getAsSize();
+        //Logger.DEBUG("array size: " + Integer.toString(s) );
         //Logger.DEBUG("finish one map");
     }
 

@@ -102,6 +102,7 @@ public abstract class AlignerInstance {
         proc.getSTDINWriter().newLine();
         return 0;
     }
+
     
     public int writePairedSAMRecordToContext(SAMRecord sam, boolean useCompact) throws IOException, InterruptedException {
         int count = 0;

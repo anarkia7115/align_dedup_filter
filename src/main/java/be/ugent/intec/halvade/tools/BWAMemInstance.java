@@ -23,6 +23,8 @@ import java.io.InputStream;
 import org.apache.hadoop.mapreduce.Mapper;
 import be.ugent.intec.halvade.utils.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
 /**
@@ -34,6 +36,7 @@ public class BWAMemInstance extends AlignerInstance {
 	private static BWAMemInstance instance;
 	private ProcessBuilderWrapper pbw;
 	private SAMStreamHandler ssh;
+	private ArrayList<String> as = new ArrayList<String>();
 	private int retryTime = 0;
 	private final int MAX_RETRY = 1;
 
@@ -47,9 +50,39 @@ public class BWAMemInstance extends AlignerInstance {
 		taskid = taskid.substring(taskid.indexOf("m_"));
 		ref = HalvadeFileUtils.downloadBWAIndex(context, taskid);
 	}
+	
+	public int getAsSize() {
+		return as.size();
+	} 
 
 	public int feedLine(String line) throws IOException {
+		// gjx save line to mem
+		as.add(line);
 		return feedLine(line, pbw);
+	}
+
+	public void loadMapContextInMem(ProcessBuilderWrapper proc) {
+		// if (proc.getState() != 1) {
+		// Logger.DEBUG("writing \'" + line +"\' to process with state " +
+		// proc.getState());
+		// throw new IOException("Error when writing to process with current
+		// state " + proc.getState());
+		// }
+		if (as.size() <=0){
+			Logger.DEBUG("as size: " + Integer.toString(as.size()));
+			return;
+		}
+		try {
+			for (String line : as) {
+
+				proc.getSTDINWriter().write(line, 0, line.length());
+
+				proc.getSTDINWriter().newLine();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -113,6 +146,7 @@ public class BWAMemInstance extends AlignerInstance {
 			Logger.DEBUG("retry " + Integer.toString(retryTime) + " times");
 			retryTime++;
 			startAligner(context);
+			loadMapContextInMem(pbw);
 			closeAligner();
 		}
 		if (retryTime != 0) {
